@@ -238,6 +238,9 @@ capacity = st.number_input(
     value=500.0,
     step=1.0
 )
+if capacity > 724.13:
+    st.error("❌ Capacity cannot exceed 724.13 mAh, which is the maximum capacity in the dataset.")
+    st.stop()
 
 
 # ============================================================
@@ -252,9 +255,12 @@ if st.button("🔍 Predict Battery Health"):
 
     INITIAL_CAPACITY = 724.13
 
-    soh = round(
-        (capacity / INITIAL_CAPACITY) * 100,
-        2
+    soh = min(
+        round(
+            (capacity / INITIAL_CAPACITY) * 100,
+            2
+        ),
+        100
     )
 
 
@@ -384,7 +390,7 @@ if st.button("🔍 Predict Battery Health"):
     # ========================================================
 
     display_parameter(
-        "Capacity",
+        "Capacity (mAh)",
         row[capacity_column]
     )
 
@@ -395,42 +401,42 @@ if st.button("🔍 Predict Battery Health"):
 
     parameters = {
 
-        "Time Duration": [
+        "Time Duration (s)": [
             "time_duration",
             "time duration"
         ],
 
-        "Voltage Mean": [
+        "Voltage Mean (V)": [
             "voltage_mean",
             "voltage mean"
         ],
 
-        "Voltage Min": [
+        "Voltage Min (V)": [
             "voltage_min",
             "voltage min"
         ],
 
-        "Voltage Max": [
+        "Voltage Max (V)": [
             "voltage_max",
             "voltage max"
         ],
 
-        "Charge Mean": [
+        "Charge Mean (Ah)": [
             "charge_mean",
             "charge mean"
         ],
 
-        "Charge Max": [
+        "Charge Max (Ah)": [
             "charge_max",
             "charge max"
         ],
 
-        "Temperature Mean": [
+        "Temperature Mean (°C)": [
             "temperature_mean",
             "temperature mean"
         ],
 
-        "Temperature Max": [
+        "Temperature Max (°C)": [
             "temperature_max",
             "temperature max"
         ]
