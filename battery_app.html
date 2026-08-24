@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EV Battery Health</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #050509;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: #0b0b12;
+            border: 1px solid #00ffff;
+            border-radius: 20px;
+            padding: 35px 25px;
+            box-shadow:
+                0 0 15px #00ffff,
+                0 0 40px rgba(0, 255, 255, 0.25);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            color: #00ffff;
+            margin-bottom: 8px;
+            text-shadow:
+                0 0 5px #00ffff,
+                0 0 15px #00ffff,
+                0 0 30px #00ffff;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        .bluetooth {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ff00ff;
+            border-radius: 10px;
+            background: transparent;
+            color: #ff00ff;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 12px;
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.4);
+        }
+
+        .bluetooth:hover {
+            background: #ff00ff;
+            color: black;
+            box-shadow: 0 0 25px #ff00ff;
+        }
+
+        #btStatus {
+            text-align: center;
+            color: #00ff99;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            color: #00ffff;
+            margin-bottom: 8px;
+            margin-top: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            background: #11111a;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 10px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+        }
+
+        .predict {
+            width: 100%;
+            margin-top: 28px;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #00ffff;
+            color: #000;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .predict:hover {
+            box-shadow:
+                0 0 15px #00ffff,
+                0 0 35px #00ffff;
+        }
+
+        #result {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff99;
+            text-shadow: 0 0 15px #00ff99;
+        }
+
+        #batteryStatus {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .data-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 15px;
+            background: #11111a;
+        }
+
+        .data-box h2 {
+            text-align: center;
+            color: #00ffff;
+            margin-bottom: 18px;
+            font-size: 20px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-name {
+            color: #aaa;
+        }
+
+        .data-value {
+            color: white;
+            font-weight: bold;
+        }
+
+        .note {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>EV BATTERY HEALTH</h1>
+
+    <div class="subtitle">
+        Battery State of Health Prediction
+    </div>
+
+    <button class="bluetooth" onclick="connectBluetooth()">
+        ⚡ Connect Battery Bluetooth
+    </button>
+
+    <div id="btStatus">
+        Bluetooth not connected
+    </div>
+
+    <label for="cycle">Cycle Number</label>
+
+    <input
+        type="number"
+        id="cycle"
+        placeholder="Enter cycle number"
+        value="100"
+    >
+
+    <label for="capacity">Battery Capacity (mAh)</label>
+
+    <input
+        type="number"
+        id="capacity"
+        placeholder="Enter battery capacity"
+        value="714"
+    >
+
+    <button class="predict" onclick="predictSOH()">
+        Predict Battery SOH
+    </button>
+
+    <div id="result"></div>
+
+    <div id="batteryStatus"></div>
+
+    <div class="data-box" id="dataBox">
+
+        <h2>Battery Parameters</h2>
+
+        <div class="data-row">
+            <span class="data-name">Cycle</span>
+            <span class="data-value" id="dCycle">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Capacity (mAh)</span>
+            <span class="data-value" id="dCapacity">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Time Duration</span>
+            <span class="data-value" id="dTime">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Mean Voltage (V)</span>
+            <span class="data-value" id="dVoltageMean">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Minimum Voltage (V)</span>
+            <span class="data-value" id="dVoltageMin">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Maximum Voltage (V)</span>
+            <span class="data-value" id="dVoltageMax">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Mean Charge</span>
+            <span class="data-value" id="dChargeMean">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Maximum Charge</span>
+            <span class="data-value" id="dChargeMax">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Mean Temperature (°C)</span>
+            <span class="data-value" id="dTempMean">-</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-name">Maximum Temperature (°C)</span>
+            <span class="data-value" id="dTempMax">-</span>
+        </div>
+
+    </div>
+
+    <div class="note">
+        EV Battery Monitoring System
+    </div>
+
+</div>
+
+
+<script>
+async function predictSOH() {
+
+    const cycle = document.getElementById("cycle").value;
+    const capacity = document.getElementById("capacity").value;
+
+    const result = document.getElementById("result");
+    const status = document.getElementById("batteryStatus");
+    const dataBox = document.getElementById("dataBox");
+
+    if (cycle === "" || capacity === "") {
+
+        result.innerText = "Please enter both values.";
+        result.style.color = "#ff4444";
+
+        dataBox.style.display = "none";
+        status.innerText = "";
+
+        return;
+    }
+
+    result.innerText = "Predicting...";
+    result.style.color = "#00ffff";
+
+    status.innerText = "";
+    dataBox.style.display = "none";
+
+    try {
+
+        const response = await fetch("/predict", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                cycle: cycle,
+                capacity: capacity
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+
+            result.innerText =
+                "Battery SOH: " + data.prediction + "%";
+
+            result.style.color = "#00ff99";
+
+            // Battery status
+            if (data.prediction >= 80) {
+
+                status.innerText =
+                    "🟢 Battery Status: GOOD";
+
+                status.style.color = "#00ff99";
+
+            } else if (data.prediction >= 60) {
+
+                status.innerText =
+                    "🟡 Battery Status: WARNING";
+
+                status.style.color = "#ffff00";
+
+            } else {
+
+                status.innerText =
+                    "🔴 Battery Status: CRITICAL";
+
+                status.style.color = "#ff4444";
+            }
+
+            // Battery data
+            const b = data.battery_data;
+
+            document.getElementById("dCycle").innerText =
+                b.cycle;
+
+            document.getElementById("dCapacity").innerText =
+                b.capacity;
+
+            document.getElementById("dTime").innerText =
+                b.time_duration;
+
+            document.getElementById("dVoltageMean").innerText =
+                b.voltage_mean;
+
+            document.getElementById("dVoltageMin").innerText =
+                b.voltage_min;
+
+            document.getElementById("dVoltageMax").innerText =
+                b.voltage_max;
+
+            document.getElementById("dChargeMean").innerText =
+                b.charge_mean;
+
+            document.getElementById("dChargeMax").innerText =
+                b.charge_max;
+
+            document.getElementById("dTempMean").innerText =
+                b.temperature_mean;
+
+            document.getElementById("dTempMax").innerText =
+                b.temperature_max;
+
+            dataBox.style.display = "block";
+
+        } else {
+
+            result.innerText =
+                data.error || "Prediction error.";
+
+            result.style.color = "#ff4444";
+        }
+
+    } catch (error) {
+
+        result.innerText =
+            "Server connection error.";
+
+        result.style.color = "#ff4444";
+
+        console.log(error);
+    }
+}
+async function connectBluetooth() {
+
+    const status = document.getElementById("btStatus");
+
+    if (!navigator.bluetooth) {
+
+        status.innerText =
+            "Bluetooth is not supported in this browser.";
+
+        status.style.color = "#ff4444";
+
+        return;
+    }
+
+    try {
+
+        status.innerText =
+            "Searching for battery...";
+
+        const device =
+            await navigator.bluetooth.requestDevice({
+
+                acceptAllDevices: true
+
+            });
+
+        status.innerText =
+            "Connected: " + device.name;
+
+        status.style.color =
+            "#00ff99";
+
+        console.log(
+            "Bluetooth device:",
+            device
+        );
+
+    } catch (error) {
+
+        status.innerText =
+            "Bluetooth connection cancelled.";
+
+        status.style.color =
+            "#ff4444";
+
+        console.log(error);
+    }
+}
+
+</script>
+
+</body>
+</html>
